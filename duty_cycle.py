@@ -62,6 +62,7 @@ class DutyCycleWidget(QWidget):
         # 2. TOP LAYER: The Tactile Slider
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setRange(0, 100)
+        self.slider.setEnabled(False)
         
         # Add tactile ticks below the track
         self.slider.setTickPosition(QSlider.TickPosition.TicksBelow)
@@ -108,6 +109,13 @@ class DutyCycleWidget(QWidget):
         """Updates the label instantly while dragging."""
         current_val = self.progress_bar.value()
         self.val_label.setText(f"Target: {target_val}%  |  Current: {current_val}%")
+
+    def update_slider_state(self, is_connected):
+        """Disables/Enables the slider if there is no conncetion"""
+        self.slider.setEnabled(is_connected)
+        self.slider.setValue(0)
+        self.progress_bar.setValue(0)
+        self.val_label.setText("Target: 0%  |  Current: 0%")
 
     def update_telemetry(self, payload):
         """Called by the main brain. Updates the climbing blue progress bar."""

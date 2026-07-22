@@ -1,0 +1,7 @@
+1. UPDATE README
+
+2. Icons
+
+3. Build a test
+
+4. Disable slider when not connected

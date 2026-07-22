@@ -21,11 +21,13 @@ logo = "██ ███████ ███████ ███████
 # ██ ███████ ███████ ███████ 
         
                            
-"""MAXIMUM VALEUS DO NOT CHANGE MOTHERFUCKER"""
+"""DEFAULT VALUES DO NOT CHANGE MOTHERFUCKER"""
+
+DEBUG_MODE = True
 NAME = "P-W-M Controller"
-INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1"
+INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1 22/7/26"
 MAX_FREQ = 100* 1000  # 100KHz
-MAX_LIMIT = 60      # 60% duty cycle
+MAX_LIMIT = 60      # 60% duty cycle 
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -145,6 +147,9 @@ class MainApp(QMainWindow):
         # Wire the slider release event to our sender function
         self.top_right_panel.slider.sliderReleased.connect(self.send_duty)
 
+        # Wire the connected signal to enable/disable timer
+        self.board.connection_changed.connect(self.top_right_panel.update_slider_state) 
+
 
 
 
@@ -206,15 +211,20 @@ class MainApp(QMainWindow):
             if limit_val > MAX_LIMIT: limit_val = MAX_LIMIT
             if limit_val < 0: limit_val = 0
             
-            self.board.send_command(f"L:{limit_val}") # Change 'L:' if needed
+            self.board.send_command(f"L:{limit_val}")
+
+            if DEBUG_MODE:
+                self.bottom_right_panel.append_sent_message(f"R:{limit_val}")
+                
+                
             self.left_panel.limit_input.clear()
         except ValueError:
             self.left_panel.limit_input.clear()
 
     def send_ramp(self):
 
-
-        print("[DEBUG] Ramp button clicked.")
+        if DEBUG_MODE:
+            print("[DEBUG] Ramp button clicked.")
         raw_text = self.left_panel.ramp_input.text().strip()
         print(f"[DEBUG] Raw ramp input: '{raw_text}'")
         if not raw_text: return
@@ -224,8 +234,11 @@ class MainApp(QMainWindow):
             
             try:
                 ramp_val = int(raw_text)*1000  # Convert seconds to milliseconds
-                print(f"[DEBUG] Parsed ramp value: {ramp_val}")
-                self.board.send_command(f"P:{ramp_val}") 
+
+                if DEBUG_MODE:
+                    print(f"[DEBUG] Parsed ramp value from secs func: {ramp_val}")
+                    self.board.send_command(f"P:{ramp_val}") 
+
                 self.left_panel.ramp_input.clear()
             except ValueError:
                 self.left_panel.ramp_input.clear()
@@ -234,7 +247,11 @@ class MainApp(QMainWindow):
 
             try:
                 ramp_val = int(raw_text)
-                print(f"[DEBUG] Parsed ramp value: {ramp_val}")
+
+                if DEBUG_MODE:
+                    print(f"[DEBUG] Parsed ramp value: {ramp_val}")
+                    self.bottom_right_panel.append_sent_message(f"R:{ramp_val}")
+
                 self.board.send_command(f"P:{ramp_val}") 
                 self.left_panel.ramp_input.clear()
             except ValueError:
@@ -246,19 +263,24 @@ class MainApp(QMainWindow):
             target_val = self.top_right_panel.slider.value()
             self.board.send_command(f"D:{target_val}")
             
-            # Optional: Echo it to the serial monitor so you can see it happen
-            self.bottom_right_panel.append_sent_message(f"D:{target_val}")
+            if DEBUG_MODE:
+                self.bottom_right_panel.append_sent_message(f"D:{target_val}")
 
     def toggle_output(self):
         """Checks the memorized state and sends the opposite command explicitly."""
         if self.current_output_state is True:
             # The board is currently ON, so we explicitly command it to turn OFF
             self.board.send_command("O:0")
-            print("[DEBUG] Sent Command: 0:0 (Turn OFF)")
+            if DEBUG_MODE:
+                print("[DEBUG] Sent Command: 0:0 (Turn OFF)")
+                self.bottom_right_panel.append_sent_message("O:0")
         else:
             # The board is currently OFF, so we explicitly command it to turn ON
             self.board.send_command("O:1")
-            print("[DEBUG] Sent Command: 0:1 (Turn ON)")
+            if DEBUG_MODE:
+                
+                self.bottom_right_panel.append_sent_message("O:1")
+                print("[DEBUG] Sent Command: 0:1 (Turn ON)")
     
     def sync_board_state(self, payload):
         """Silently memorizes the current output state every time telemetry arrives."""
@@ -294,7 +316,9 @@ class MainApp(QMainWindow):
 if __name__ == "__main__":
 
 
-    print(logo)
+    print(f"{logo}\n")
+    print(f"{INFO}\n")
+
     app = QApplication(sys.argv)
    
     # Apply the dark theme palette
