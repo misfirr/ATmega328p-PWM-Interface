@@ -4,4 +4,7 @@
 
 3. Build a test
 
-4. Disable slider when not connected
+4. Disable slider when not connected ✅
+
+5. Test on MacOS ✅
+ 5.1 Fix compat issues in macOS ✅
