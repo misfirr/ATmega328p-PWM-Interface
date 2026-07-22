@@ -1,0 +1,21 @@
+# --- Virtual Environment ---
+venv/
+ui_app/venv/
+
+# --- Python Cache ---
+__pycache__/
+ui_app/__pycache__/
+*.pyc
+
+# --- Clutter & Test Files ---
+basics.py
+connecttest.py
+dataparsertest.py
+ui_app/basics.py
+ui_app/connecttest.py
+ui_app/dataparsertest.py
+
+# --- PyInstaller Build Folders ---
+build/
+dist/
+*.spec

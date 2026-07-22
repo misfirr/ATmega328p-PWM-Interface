@@ -16,7 +16,7 @@ class SerialMonitorWidget(QWidget):
         # """)
         #If we add a border to the parent widget it will overide the border of the card,
         # so we will not add a border to the parent widget, but only to the card (Qframe) that is inside it.
-
+        
         
 
         main_layout = QVBoxLayout()
