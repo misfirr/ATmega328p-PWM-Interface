@@ -26,7 +26,7 @@ logo = "██ ███████ ███████ ███████
 DEBUG_MODE = True
 NAME = "P-W-M Controller"
 INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1.3 23/7/26"
-#Mac compatability check and other bug fixes
+#Mac compatability check and other bug fixes , Checked on Windows machine as well.
 MAX_FREQ = 100* 1000  # 100KHz
 MAX_LIMIT = 60      # 60% duty cycle 
 
