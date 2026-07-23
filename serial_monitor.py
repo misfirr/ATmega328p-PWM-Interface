@@ -61,7 +61,7 @@ class SerialMonitorWidget(QWidget):
             QTextEdit {
                 background-color: #1e1e1e; 
                 color: #d4d4d4; 
-                font-family: monospace;
+                
                 border: 1px solid #444444;
                 border-radius: 10px;
                 padding: 5px;

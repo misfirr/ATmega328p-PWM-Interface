@@ -25,7 +25,8 @@ logo = "██ ███████ ███████ ███████
 
 DEBUG_MODE = True
 NAME = "P-W-M Controller"
-INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1.3 22/7/26"
+INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1.3 23/7/26"
+#Mac compatability check and other bug fixes , Checked on Windows machine as well.
 MAX_FREQ = 100* 1000  # 100KHz
 MAX_LIMIT = 60      # 60% duty cycle 
 
@@ -159,6 +160,8 @@ class MainApp(QMainWindow):
         if not self.board.is_connected:
             # Read the selected port directly from the combo box!
             selected_port = self.left_panel.port_combo.currentData()
+            if DEBUG_MODE:
+                print(f"Selected port name / path (thx unix) : {selected_port}")
             
             # Safety check: Don't try to connect if no real ports exist
             if selected_port == "No ports found":

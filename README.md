@@ -34,16 +34,24 @@ pip install PyQt6 pyserial pyqt-darktheme
 
 
 ---
-## ❗Changelog 22/7/26 v0.1.1
+## ❗Changelogs 
 <details>
 
-<summary>Changelog</summary>
+<summary>22/7/26 v0.1.2</summary>
 
 - Duty Cycle Slider is now **locked** if board isn't connected.
 - Fixed slider telemetry data not zeroing out when board disconnected.
 - Added more debugging features , **ON** by default.
 - Updated README
 </details>
+<details>
+
+<summary>23/7/26 v0.1.3</summary>
+
+- MacOS compatability 
+- Other bug fixes
+</details>
+
 
 
 

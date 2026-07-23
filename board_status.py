@@ -171,7 +171,8 @@ class BoardStatusWidget(QWidget):
         
         # Ask Qt to scan the computer's USB/Serial ports
         for port in QSerialPortInfo.availablePorts():
-            port_name = port.portName()      # e.g. "COM4"
+            port_name = port.portName()      # e.g. "COM4" deprecated because  fuck unixs
+            port_path = port.systemLocation() # serial "file" location cause unix is bazed like that 
             description = port.description() # e.g. "Arduino Uno" or "USB Serial Device"
             
             # Create a nice label for the user to read
@@ -179,7 +180,7 @@ class BoardStatusWidget(QWidget):
             
             # Add it to the drop-down. 
             # 'userData' secretly stores the raw "COM3" string so we can pass it to the backend later!
-            self.port_combo.addItem(display_text, userData=port_name)
+            self.port_combo.addItem(display_text, userData=port_path)
             
         # Fallback if the Arduino isn't plugged in
         if self.port_combo.count() == 0:
