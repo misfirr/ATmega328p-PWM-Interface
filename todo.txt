@@ -3,5 +3,9 @@
 2. Icons
 
 3. Build a test
+    >>> Test it on Mac
 
-4. Disable slider when not connected
+4. Disable slider when not connected ✅
+
+5. Test source code on Mac
+

@@ -25,7 +25,7 @@ logo = "██ ███████ ███████ ███████
 
 DEBUG_MODE = True
 NAME = "P-W-M Controller"
-INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1 22/7/26"
+INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1.3 22/7/26"
 MAX_FREQ = 100* 1000  # 100KHz
 MAX_LIMIT = 60      # 60% duty cycle 
 
