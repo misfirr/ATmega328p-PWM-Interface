@@ -65,7 +65,7 @@ pip install PyQt6 pyserial pyqt-darktheme
 
   <summary> More</summary>
 
-  As of release v0.1.1 , when changing the frequency  , the duty cycle changes along with it. <br>
+  As of release v0.1.3 , when changing the frequency  , the duty cycle changes along with it. <br>
   This is an issue with the pwm lib used in the microcontroller and the recommended solution for sensitive projects in to first : <br>
   1. Turn off the Output.
   2. Change frequency.
