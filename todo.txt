@@ -7,15 +7,15 @@
 
 4. Disable slider when not connected ✅
 
-5. Test source code on Mac
+5. Test source code on Mac ✅
 
 4. Disable slider when not connected ✅
 
 5. Test on MacOS ✅
  5.1 Fix compat issues in macOS ✅
 
-6. Double test macOS fixes in windows 
- 6.1 merge to main if successful
+6. Double test macOS fixes in windows ✅
+ 6.1 merge to main if successful✅
 
 7. Add live (output) pin telemetry data and indicator (fw & sw)
 
