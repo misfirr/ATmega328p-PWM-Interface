@@ -76,7 +76,7 @@ class BoardStatusWidget(QWidget):
         # --- FREQUENCY CONTROL ROW ---
         freq_row_layout = QHBoxLayout()
         
-        self.freq_label = QLabel("Freq:")
+        self.freq_label = QLabel("Freq:---")
         self.freq_label.setStyleSheet("font-weight: bold;")
         
         self.freq_input = QLineEdit()
@@ -104,7 +104,7 @@ class BoardStatusWidget(QWidget):
 
         # --- SAFETY LIMIT ROW ---
         limit_row_layout = QHBoxLayout() 
-        self.limit_label = QLabel(" Limit: ---")
+        self.limit_label = QLabel(" Limit (%) : ---")
         self.limit_input = QLineEdit()
         self.limit_input.setPlaceholderText("e.g. 50")
 
@@ -119,7 +119,7 @@ class BoardStatusWidget(QWidget):
         ramp_row_layout = QHBoxLayout()
         self.ramp_label = QLabel(" Ramp: --- (ms)")
         self.ramp_input = QLineEdit()
-        self.ramp_input.setPlaceholderText("e.g. 1000 (ms)")
+        self.ramp_input.setPlaceholderText("e.g. 1000 (ms) or 1s")
         self.btn_set_ramp = QPushButton("Set")
         
         ramp_row_layout.addWidget(self.ramp_label)
@@ -202,7 +202,7 @@ class BoardStatusWidget(QWidget):
         else:
             # Visuals for DISCONNECTED state
             self.btn_connect.setText("Connect")
-            self.btn_connect.setStyleSheet("") # Clearing this resets it to your default dark theme
+            self.btn_connect.setStyleSheet("") # reset to dark theme
             
             self.status_label.setText("Status: Disconnected")
             self.status_label.setStyleSheet("color: #ff5555; font-weight: bold;") # Red text
@@ -234,7 +234,7 @@ class BoardStatusWidget(QWidget):
         
         # Format the boolean True/False into ON/OFF for readability
 
-        """deprecated ,now the indicator is the button itself"""
+        "deprecated ,now the indicator is the button itself"
         #out_state = "ON" if payload["output_enabled"] else "OFF"
         #self.output_label.setText(f" Output: {out_state}")     
         #self.btn_toggle_output.setText(f"Output : {out_state}") 

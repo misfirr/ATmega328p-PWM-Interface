@@ -88,8 +88,8 @@ class SerialManager(QObject) :
                     
                     
             except serial.SerialException as e:
-                # C
-                # The read failed, so we trigger our disconnect protocol.
+                
+                # The read failed, so we trigger disconnect func.
                 self.disconnect_board() # This function emits connection_changed(False)
                 self.message_received.emit("Hardware disconnected unexpectedly.")
                 break # Kill the background loop

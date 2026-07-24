@@ -59,7 +59,7 @@ class DutyCycleWidget(QWidget):
             }
         """)
         
-        # 2. TOP LAYER: The Tactile Slider
+        # 2. TOP LAYER: Slider
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setRange(0, 100)
         self.slider.setEnabled(False)
@@ -91,18 +91,18 @@ class DutyCycleWidget(QWidget):
             }
         """)
 
-        # Add BOTH to row 0, column 0. The one added LAST goes on TOP.
+        # Add BOTH to row 0, column 0.
         overlay_layout.addWidget(self.progress_bar, 0, 0)
         overlay_layout.addWidget(self.slider, 0, 0)
 
         card_layout.addLayout(overlay_layout)
 
-        #card_layout.addStretch() # Pushes everything neatly to the top
+        #card_layout.addStretch() 
         self.card.setLayout(card_layout)
         main_layout.addWidget(self.card)
         self.setLayout(main_layout)
 
-        # Local wiring: Instantly update the label when you drag, before sending to Arduino
+        # Local wiring: Instantly update the label when you drag
         self.slider.valueChanged.connect(self.update_local_label)
 
     def update_local_label(self, target_val):

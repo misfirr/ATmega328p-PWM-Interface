@@ -56,7 +56,7 @@ class SerialMonitorWidget(QWidget):
         mono_font.setPointSize(11) # Set to a clean, readable size
         self.text_display.setFont(mono_font)
 
-        # Give the text area its own subtle inset look
+        # text area look
         self.text_display.setStyleSheet("""
             QTextEdit {
                 background-color: #1e1e1e; 
@@ -105,8 +105,7 @@ class SerialMonitorWidget(QWidget):
         self.btn_send.setEnabled(False)
 
         """-- LOCAL WIRING --"""
-        # The clear button doesn't need to talk to the backend, 
-        # so we can wire it directly to the text display right here!
+        # The clear button doesn't need to talk to the backend
         self.btn_clear.clicked.connect(self.text_display.clear)
 
     def append_message(self, message):
@@ -126,5 +125,5 @@ class SerialMonitorWidget(QWidget):
         self.btn_send.setEnabled(is_connected)
         
         if not is_connected:
-            # Optional: Clear the input box if connection drops
+            
             self.input_box.clear()    
