@@ -21,7 +21,7 @@ A GUI that works in tandem with the microcontroller to provide controlled PWM ou
 ⬇️Install 
 ---
 **1. Flash the Firmware**
-Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller. <br> Make sure you have the library [PWM.h] (https://github.com/terryjmyers/PWM) installed.
+Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller. <br> Make sure you have the library [PWM.h](https://github.com/terryjmyers/PWM) installed.
 
 **2. Install Python Dependencies**
 Ensure you have Python installed, then install the required libraries via your terminal:
