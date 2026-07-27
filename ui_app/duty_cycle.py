@@ -97,7 +97,7 @@ class DutyCycleWidget(QWidget):
 
         card_layout.addLayout(overlay_layout)
 
-        #card_layout.addStretch() 
+        card_layout.addStretch() 
         self.card.setLayout(card_layout)
         main_layout.addWidget(self.card)
         self.setLayout(main_layout)

@@ -21,7 +21,7 @@ A GUI that works in tandem with the microcontroller to provide controlled PWM ou
 ⬇️Install 
 ---
 **1. Flash the Firmware**
-Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller.
+Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller. <br> Make sure you have the library [PWM.h] (https://github.com/terryjmyers/PWM) installed.
 
 **2. Install Python Dependencies**
 Ensure you have Python installed, then install the required libraries via your terminal:
@@ -52,6 +52,17 @@ pip install PyQt6 pyserial pyqt-darktheme
 - Other bug fixes
 </details>
 
+<details>
+
+<summary>27/7/26 v0.1.4</summary>
+
+- Changed file structure
+- Added Freq Change pop-up warning if output is enabled
+- Added Icons
+- changed file structure
+- General clean-up
+</details>
+
 
 
 
@@ -65,7 +76,7 @@ pip install PyQt6 pyserial pyqt-darktheme
 
   <summary> More</summary>
 
-  As of release v0.1.3 , when changing the frequency  , the duty cycle changes along with it. <br>
+  As of release v0.1.4 , when changing the frequency  , the duty cycle changes along with it. <br>
   This is an issue with the pwm lib used in the microcontroller and the recommended solution for sensitive projects in to first : <br>
   1. Turn off the Output.
   2. Change frequency.

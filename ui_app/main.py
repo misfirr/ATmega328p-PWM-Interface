@@ -1,5 +1,6 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout , QLabel
+import sys , os 
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout , QLabel , QMessageBox , QStyle 
 from darktheme.widget_template_pyqt6 import DarkPalette
 
 
@@ -7,6 +8,8 @@ from darktheme.widget_template_pyqt6 import DarkPalette
 from board_status import BoardStatusWidget
 from duty_cycle import DutyCycleWidget
 from serial_monitor import SerialMonitorWidget
+
+
 #import serial manager and threading for background serial reading
 from serial_manager import SerialManager
 import threading    
@@ -19,16 +22,26 @@ logo = "██ ███████ ███████ ███████
 # ██ █████   █████   █████   
 # ██ ██      ██      ██      
 # ██ ███████ ███████ ███████ 
-        
+
+if sys.platform == "win32":
+    import ctypes
+    
+    id = 'ieeesbupatras.pwm_controller.1_4' 
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(id)
+
                            
-"""DEFAULT VALUES DO NOT CHANGE MOTHERFUCKER"""
+"DEFAULT VALUES DO NOT CHANGE MOTHERFUCKER"
 
 DEBUG_MODE = True
 NAME = "P-W-M Controller"
-INFO = "IEEE SB UPATRAS - PES Chapter: Interface for arduino PWM experimentation v0.1.3 23/7/26"
-#Mac compatability check and other bug fixes , Checked on Windows machine as well.
+INFO = "IEEE SB UPATRAS - PES Chapter: Interface for microcontroller PWM experimentation v0.1.4 27/7/26"
+#Added Freq warning
 MAX_FREQ = 100* 1000  # 100KHz
-MAX_LIMIT = 60      # 60% duty cycle 
+MAX_LIMIT = 60      # 0% - 90%
+LOGO_ON = False
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -36,7 +49,11 @@ class MainApp(QMainWindow):
 
         self.setWindowTitle(NAME)
         self.resize(1000, 700)
-        
+
+        icon_path = os.path.join(BASE_DIR, "icons", "blue.svg")
+        logo_path = os.path.join(BASE_DIR, "icons", "blue.svg")
+
+        self.setWindowIcon(QIcon(icon_path))
 
         # 1. Create the central widget and master layout
         central_widget = QWidget()#central widget is the main container for the window's content ,
@@ -50,14 +67,14 @@ class MainApp(QMainWindow):
         self.board = SerialManager(debug=DEBUG_MODE) # Instantiate the manager
 
 
-        # 2. Instantiate our custom panels
-        self.left_panel = BoardStatusWidget()
+        # Instantiate our custom panels
+        self.left_panel = BoardStatusWidget(logo_path,LOGO_ON)
         self.top_right_panel = DutyCycleWidget()
         self.bottom_right_panel = SerialMonitorWidget()
         #Output state variable to keep track of the current output state (ON/OFF)
         self.current_output_state = False
 
-        # 3. Create a vertical layout for the right side
+        # Create a vertical layout for the right side
         right_side_layout = QVBoxLayout()
         right_side_layout.addWidget(self.top_right_panel,stretch=1) # Takes 1 part of the height
         right_side_layout.addWidget(self.bottom_right_panel,stretch=2) # Takes 1 part of the height
@@ -79,12 +96,18 @@ class MainApp(QMainWindow):
         
         version_label = QLabel(INFO)
         version_label.setStyleSheet("color: #666666; font-size: 10px;")
+
+        max_limit_label = QLabel(f"MAX_LIMIT : {MAX_LIMIT} %")
+        max_limit_label.setStyleSheet("color: #566666; font-size: 10px;")
         
         self.global_status_label = QLabel("🔴 Offline")
         self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
         
         footer_layout.addWidget(version_label)
         footer_layout.addStretch() 
+        footer_layout.addWidget(max_limit_label)
+        
+        
         footer_layout.addWidget(self.global_status_label)
         
         # Add everything to the absolute main layout
@@ -181,8 +204,15 @@ class MainApp(QMainWindow):
 
     def send_frequency(self):
 
-        """Parses the user's input, applies limits, and sends the command."""
+        """Parses the user's input, applies limits, and sends the command , checks if OUTPUT is disbled."""
         # 1. Grab the raw text and convert it to lowercase (so 'K' or 'k' both work)
+        if self.current_output_state:
+            if DEBUG_MODE : print(f"[DEBUG]:Attempting to show freq warning with current OUTPUT status:{self.board.connection_changed}")
+            if not self.freq_warning():
+                self.bottom_right_panel.append_message("Canceled set frequency!")
+                return
+
+
         raw_text = self.left_panel.freq_input.text().strip().lower()
 
         multiplier = 1
@@ -202,8 +232,40 @@ class MainApp(QMainWindow):
             self.left_panel.freq_input.clear()  # Clear the input field after sending
 
         except ValueError:
-            # If the user entered something that isn't a number, we can ignore it or show an error
+            
             self.left_panel.freq_input.setText("Invalid input")
+
+    def freq_warning(self) -> bool:
+        """Warning message when user changes freq while OUTPUT is enabled"""
+
+        if DEBUG_MODE : print("[DEBUG]: prompted user with freq change warning")
+
+        buttons =  QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel
+
+        warning = QMessageBox(parent = self)
+
+        warning.setWindowTitle("Warning!")
+
+        warning.setText("<b>Changing the frequency will alter the current duty cycle</b>.\nIt is reccomended to first disable the output!")
+        
+        warning.setInformativeText("Do you still want to proceed?")
+        
+        warning.setIcon(QMessageBox.Icon.Warning)
+
+        warning.setStandardButtons(buttons)
+
+        warning.setDefaultButton(QMessageBox.StandardButton.Cancel)
+
+        warning_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
+        warning.setWindowIcon(warning_icon)
+
+        result = warning.exec()
+
+        return result == QMessageBox.StandardButton.Ok
+        
+
+
+        
 
     def send_limit(self):
         raw_text = self.left_panel.limit_input.text().strip()
@@ -232,6 +294,7 @@ class MainApp(QMainWindow):
         print(f"[DEBUG] Raw ramp input: '{raw_text}'")
         if not raw_text: return
 
+        #seconds input
         if raw_text.endswith('s'):
             raw_text = raw_text[:-1]  # Remove the 's' from the string
             
@@ -246,7 +309,7 @@ class MainApp(QMainWindow):
             except ValueError:
                 self.left_panel.ramp_input.clear()
                 print(f"[DEBUG] error:{ValueError}")
-        else:
+        else: #millis input
 
             try:
                 ramp_val = int(raw_text)
@@ -313,6 +376,8 @@ class MainApp(QMainWindow):
                 # Revert text to Offline and color to red
                 self.global_status_label.setText("🔴 Offline")
                 self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
+
+
 
 #were done telos kalo ola kala
 

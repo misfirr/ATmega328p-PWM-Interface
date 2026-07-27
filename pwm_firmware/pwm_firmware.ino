@@ -54,6 +54,8 @@ void setup() {
     Serial.println(">>>");
     Serial.println(">>>Commands: D:val (Duty), L:val (Limit), P:val (Period ms), F:val (Freq Hz)");
     Serial.println(">>>");
+    Serial.print(">>>Outputting on pin :D");
+    Serial.println(out);
   }
 }
 
@@ -66,7 +68,7 @@ void loop() {
 
   // 3. Print the telemetry twice a second
   if (millis() - last_print_time >= 500) {
-    // Format: T:current_duty,target_duty,safety_limit,ramp_duration,frequency,output_enabled
+    // Format: T:current_duty,target_duty,safety_limit,ramp_duration,frequency,output_enabled,pin_out
     Serial.print("T:");
     Serial.print(current_duty * 100 / 255);
     Serial.print(",");
@@ -78,7 +80,9 @@ void loop() {
     Serial.print(",");
     Serial.print(frequency);
     Serial.print(",");
-    Serial.println(output_enabled); 
+    Serial.print(output_enabled); 
+    Serial.print(",");
+    Serial.println(out); //pin number
     
     last_print_time = millis();
   }

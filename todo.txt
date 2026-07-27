@@ -1,6 +1,6 @@
 1. UPDATE README ✅
 
-2. Icons
+2. Icons✅
 
 3. Build a test
     >>> Test it on Mac
@@ -17,6 +17,11 @@
 6. Double test macOS fixes in windows ✅
  6.1 merge to main if successful✅
 
-7. Add live (output) pin telemetry data and indicator (fw & sw)
+7. Add live (output) pin telemetry data and indicator (fw & sw)✅
 
-8.Add support for programmable output (maybe pwl-esque files) lowlow prio
+8. Add support for programmable output (maybe pwl-esque files) lowlow prio
+
+9.  frequency issue warning✅
+ 9.1 maybe run the correct algo automatically 
+
+10. update file structure✅

@@ -1,7 +1,7 @@
 #telemetry gathering & command issuing 
 
 import serial
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal , QTime
 
 class SerialManager(QObject) :
 
@@ -67,7 +67,7 @@ class SerialManager(QObject) :
                         #split into list
                         data = raw_data.split(',')
 
-                        if len(data) == 6:
+                        if len(data) == 7:
                                 
                                 payload = {
                                     "current_duty": int(data[0]),
@@ -75,14 +75,16 @@ class SerialManager(QObject) :
                                     "safety_limit": int(data[2]),
                                     "ramp_period": int(data[3]),
                                     "frequency": int(data[4]),
-                                    "output_enabled": True if data[5] == '1' else False
+                                    "output_enabled": True if data[5] == '1' else False,
+                                    "pin_out" : int(data[6])
                                 }
                                 
                                 
                                 self.telemetry_updated.emit(payload)
 
                                 if self.debug:
-                                    print(payload) # For debugging purposes <3
+                                    current_time = QTime.currentTime().toString()   
+                                    print(f"{current_time}:{payload}") # For debugging purposes <3
                     
                     elif raw_line:
                         # standard message

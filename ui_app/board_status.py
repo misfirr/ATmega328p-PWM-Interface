@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QFrame, QComboBox, QPushButton, QLineEdit)
+                             QLabel, QFrame, QComboBox, QPushButton, QLineEdit, QSizePolicy)
 from PyQt6.QtSerialPort import QSerialPortInfo
+from PyQt6.QtSvgWidgets import QSvgWidget 
 from PyQt6.QtCore import Qt,QTimer
 
 
@@ -9,9 +10,10 @@ from PyQt6.QtCore import Qt,QTimer
 
 
 class BoardStatusWidget(QWidget):
-    def __init__(self):
+    def __init__(self,logo_path,logo_on):
         super().__init__()
 
+        
         # 1. The Outer Wrapper
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(10, 10, 10, 10)
@@ -148,6 +150,49 @@ class BoardStatusWidget(QWidget):
         output_row_layout.addWidget(self.btn_toggle_output)
         card_layout.addLayout(output_row_layout)
 
+        "---PIN OUT LABEL---"
+        self.pin_out_card = QFrame()
+        
+        self.pin_out_card.setStyleSheet("""
+                    QFrame {
+                        border: 2px solid #555555;
+                        border-radius: 20px;
+                        background-color: #2b2b2b;
+                    }
+                    QLabel { 
+                        border: none; 
+                        background-color: transparent; 
+                    }
+                """)
+        pin_out_layout = QHBoxLayout()
+        #pin_out_layout.setContentsMargins(10,5,10,5)
+
+        self.pin_label = QLabel("Output Pin: ---")
+        #self.pin_label.setIndent(1)
+        self.pin_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        pin_out_layout.addWidget(self.pin_label)
+
+        #pinout assembly
+        self.pin_out_card.setLayout(pin_out_layout)
+        #card_layout.addLayout(pin_out_layout)
+        
+        card_layout.addWidget(self.pin_out_card)
+
+        "Logo"
+        if logo_on:
+            self.logo_widget = QSvgWidget(logo_path)
+
+            #self.logo_widget.setFixedSize(150, 150)
+            self.logo_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+            self.logo_widget.renderer().setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
+
+            card_layout.addWidget(self.logo_widget )
+
+        
+
+
 
         card_layout.addStretch() # Push everything up to the top
 
@@ -239,6 +284,13 @@ class BoardStatusWidget(QWidget):
         #self.output_label.setText(f" Output: {out_state}")     
         #self.btn_toggle_output.setText(f"Output : {out_state}") 
 
+        #pinout label
+        #change the pinoutcard style
+        self.pin_out_card.setStyleSheet("background-color: #0078D7; color: white; font-weight: bold;")
+        self.pin_label.setText(f"Output Pin : D{payload["pin_out"]}")
+
+       
+
         if payload["output_enabled"]:
             self.btn_toggle_output.setText("Output : ON")
             # Apply the blue background, white text, and bold font
@@ -261,4 +313,7 @@ class BoardStatusWidget(QWidget):
         #self.output_label.setText(" Output: ---")
         self.btn_toggle_output.setText("Output : ---")
         self.btn_toggle_output.setStyleSheet("")
+        self.pin_label.setText("Output Pin: ---")
+        self.pin_out_card.setStyleSheet("background-color: #2b2b2b; color: white; font-weight: normal;")
         self.telemetry_timer.stop() # Stop the timer until new data arrives
+

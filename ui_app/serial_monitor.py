@@ -41,14 +41,14 @@ class SerialMonitorWidget(QWidget):
 
         main_layout.addWidget(self.card)
 
-        """TITLE"""
-        title = QLabel("<b>SERIAL MONITOR</b>")
+        "TITLE"
+        title = QLabel("SERIAL MONITOR")
         title.setStyleSheet("font-weight: bold;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         card_layout.addWidget(title)
         #baud_rate = QLabel("MAYBE BAUD RATE?")
 
-        """TEXT DISPLAY"""
+        "TEXT DISPLAY"
         self.text_display = QTextEdit()
         self.text_display.setReadOnly(True)
 
@@ -69,7 +69,7 @@ class SerialMonitorWidget(QWidget):
         """)
         card_layout.addWidget(self.text_display)
         
-        """ --- INPUT ROW --- """
+        " --- INPUT ROW --- "
         input_row = QHBoxLayout()
         
         self.input_box = QLineEdit()
