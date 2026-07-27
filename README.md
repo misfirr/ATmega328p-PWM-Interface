@@ -15,8 +15,13 @@ A GUI that works in tandem with the microcontroller to provide controlled PWM ou
 - Real-Time telemetry data
 - Filtered Serial Monitor
 
- Developed for the boost-converter workshop by IEEE SB UPATRAS. <br>
+ <div align="center">
 
+ <img width="606" height="210" alt="duty" src="https://github.com/user-attachments/assets/792cc51c-6fef-4f6f-85db-f55de4a4ce28" />
+
+ <img width="530" height="298" alt="on_off" src="https://github.com/user-attachments/assets/554640a3-4edb-4540-99f5-3bdc4fe9975d" />
+
+</div
  
 ⬇️Install 
 ---
