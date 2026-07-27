@@ -10,9 +10,10 @@ class SerialManager(QObject) :
     connection_changed = pyqtSignal(bool)
 
 
-    def __init__(self):
+    def __init__(self,debug):
         super().__init__()
 
+        self.debug = debug
         self.serial_port = None
         self.is_connected = False
 
@@ -59,7 +60,7 @@ class SerialManager(QObject) :
                 # Try to read incoming telemetry
                 if self.serial_port and self.serial_port.in_waiting > 0:
                     raw_line = self.serial_port.readline().decode('utf-8').rstrip('\r\n')
-                    # (Telemetry parsing logic goes here)
+                    
                     if raw_line.startswith("T:"):
                         raw_data = raw_line.strip()[2:]  # Remove the "T:" prefix
 
@@ -67,7 +68,7 @@ class SerialManager(QObject) :
                         data = raw_data.split(',')
 
                         if len(data) == 6:
-                                # Build a clean, local dictionary
+                                
                                 payload = {
                                     "current_duty": int(data[0]),
                                     "target_duty": int(data[1]),
@@ -77,13 +78,15 @@ class SerialManager(QObject) :
                                     "output_enabled": True if data[5] == '1' else False
                                 }
                                 
-                                # Emit the dictionary to the GUI's radio tower
+                                
                                 self.telemetry_updated.emit(payload)
-                                print(payload) # For debugging purposes <3
+
+                                if self.debug:
+                                    print(payload) # For debugging purposes <3
                     
                     elif raw_line:
-                        # 2. It is a standard message! (e.g. "System Ready.")
-                        # Emit the text string to the GUI's radio tower
+                        # standard message
+                        # Emit the text string 
                         self.message_received.emit(raw_line)
                     
                     

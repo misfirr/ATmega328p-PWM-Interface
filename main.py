@@ -47,7 +47,7 @@ class MainApp(QMainWindow):
         master_layout = QHBoxLayout() # Horizontal layout (Left to Right)
                                       #any widget added to it will be automatically placed side-by-side, reading left to right.
 
-        self.board = SerialManager() # Instantiate the manager
+        self.board = SerialManager(debug=DEBUG_MODE) # Instantiate the manager
 
 
         # 2. Instantiate our custom panels
@@ -57,7 +57,7 @@ class MainApp(QMainWindow):
         #Output state variable to keep track of the current output state (ON/OFF)
         self.current_output_state = False
 
-        # 3. Create a vertical layout specifically for the right side
+        # 3. Create a vertical layout for the right side
         right_side_layout = QVBoxLayout()
         right_side_layout.addWidget(self.top_right_panel,stretch=1) # Takes 1 part of the height
         right_side_layout.addWidget(self.bottom_right_panel,stretch=2) # Takes 1 part of the height
@@ -84,7 +84,7 @@ class MainApp(QMainWindow):
         self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
         
         footer_layout.addWidget(version_label)
-        footer_layout.addStretch() # Pushes the status to the far right
+        footer_layout.addStretch() 
         footer_layout.addWidget(self.global_status_label)
         
         # Add everything to the absolute main layout
@@ -158,7 +158,7 @@ class MainApp(QMainWindow):
     def toggle_connection(self):
         """Triggered when the user clicks the Connect button on the board status panel."""
         if not self.board.is_connected:
-            # Read the selected port directly from the combo box!
+            # Read the selected port directly from the combo box
             selected_port = self.left_panel.port_combo.currentData()
             if DEBUG_MODE:
                 print(f"Selected port name / path (thx unix) : {selected_port}")
@@ -272,13 +272,13 @@ class MainApp(QMainWindow):
     def toggle_output(self):
         """Checks the memorized state and sends the opposite command explicitly."""
         if self.current_output_state is True:
-            # The board is currently ON, so we explicitly command it to turn OFF
+            
             self.board.send_command("O:0")
             if DEBUG_MODE:
                 print("[DEBUG] Sent Command: 0:0 (Turn OFF)")
                 self.bottom_right_panel.append_sent_message("O:0")
         else:
-            # The board is currently OFF, so we explicitly command it to turn ON
+            
             self.board.send_command("O:1")
             if DEBUG_MODE:
                 
@@ -286,7 +286,7 @@ class MainApp(QMainWindow):
                 print("[DEBUG] Sent Command: 0:1 (Turn ON)")
     
     def sync_board_state(self, payload):
-        """Silently memorizes the current output state every time telemetry arrives."""
+        """memorizes the current output state every time telemetry arrives."""
         self.current_output_state = payload["output_enabled"]
 
     def send_raw_command(self):
