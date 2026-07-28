@@ -287,7 +287,7 @@ class BoardStatusWidget(QWidget):
         #pinout label
         #change the pinoutcard style
         self.pin_out_card.setStyleSheet("background-color: #0078D7; color: white; font-weight: bold;")
-        self.pin_label.setText(f"Output Pin : D{payload["pin_out"]}")
+        self.pin_label.setText(f"Output Pin : D{payload['pin_out']}")
 
        
 
