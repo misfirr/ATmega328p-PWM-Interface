@@ -1,0 +1,49 @@
+#Desc: Standard Script format & example
+#Created on 30/7/26
+
+#---Commands---
+# All commands will be sent sequentially 
+# DUTY (1-LIMIT) traget duty
+# RAMP (ms)
+# OUT (ON/OFF)
+# FREQ (Hz Or KHz) eg 100000 or 100k
+# WAIT/STEP (ms) 
+#---
+
+
+BEGIN
+
+#set default params can be changed later
+DEFAULT STEP 4000   #(ms) default time step between issuing each command.Can be overiden with the WAIT/STEP cmd
+DEFAULT FREQ 10k    # or 50000 , default starting frequency set before the script runs , can be changed later. (CHECK KNOWN ISSUES IN GITHUB!)
+DEFAULT LIMIT 50    # Sets the duty safety limit. Remember this cannot EXCEED the MAX_LIMIT set to 90% by default.
+                    # If you input a value above it will be capped to MAX_LIMIT!
+
+DEFAULT RETURN FALSE #all the settings will revert back to before running the script if TRUE.
+
+
+#sequentially write down commands
+
+#OUTPUT is disabled when you run the script and the script runner will wait until the current duty is zero to start executing.
+#Target Duty is set to 0 when executing a script
+
+LIMIT 40 #Set the safety limit to a new value. This cmd is just for convenience ,it isn't recommended to change the limit while running a scritpt! 
+STEP 100 #step just 100ms instead of the default.
+
+RAMP 4000 #set ramp period to 4s
+DUTY 40   #set target duty to 40%
+OUT ON #ranmping to a new duty starts only when output is enabled
+
+#when issuing a new command make sure it has time to complete (eg when ramping up to a new target duty cycle)
+
+WAIT 4100 # so we wait a bit for the current duty to reach the target ,overides default step.
+
+#after the default step the the script will end, and if RETURN is TRUE , all the settings will revert back to before running the script.
+
+
+
+END
+
+#nothing is read after END 
+
+you can put anything in here!

@@ -49,9 +49,14 @@ class SerialManager(QObject) :
                 # Add the newline character your Arduino expects and convert to bytes
                 full_command = f"{command_string}\n"
                 self.serial_port.write(full_command.encode('utf-8'))
+                if self.debug or True:
+                    current_time = QTime.currentTime().toString()   
+                    print(f"[SERIALMANAGER]:{current_time}:Sent command: {command_string}") # For debugging purposes <3
+
             except serial.SerialException as e:
                 # If something goes wrong, we can broadcast the error to the GUI
                 self.message_received.emit(f"Error sending command: {e}")
+                print("[SERIALMANAGER]:serial write error:", e)  # For debugging purposes <3
 
     def read_loop(self):
         """This runs continuously in a background thread."""
@@ -84,7 +89,7 @@ class SerialManager(QObject) :
 
                                 if self.debug:
                                     current_time = QTime.currentTime().toString()   
-                                    print(f"{current_time}:{payload}") # For debugging purposes <3
+                                    print(f"[SERIALMANAGER]:{current_time}:{payload}") # For debugging purposes <3
                     
                     elif raw_line:
                         # standard message

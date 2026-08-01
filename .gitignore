@@ -14,6 +14,8 @@ dataparsertest.py
 ui_app/basics.py
 ui_app/connecttest.py
 ui_app/dataparsertest.py
+test*
+/ui_app/*test
 
 # --- PyInstaller Build Folders ---
 build/

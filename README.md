@@ -22,11 +22,15 @@ A GUI that works in tandem with the microcontroller to provide controlled PWM ou
  <img width="530" height="298" alt="on_off" src="https://github.com/user-attachments/assets/554640a3-4edb-4540-99f5-3bdc4fe9975d" />
 
 </div
- 
-⬇️Install 
+
 ---
-**1. Flash the Firmware**
-Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller. <br> Make sure you have the library [PWM.h](https://github.com/terryjmyers/PWM) installed.
+
+# ⬇️Install 
+
+---
+**1. Flash the Firmware**<br>
+Open the provided `.ino` file in the Arduino IDE and upload it to your ATmega328p microcontroller. <br> 
+Make sure you have the library [PWM.h](https://github.com/terryjmyers/PWM) installed.
 
 **2. Install Python Dependencies**
 Ensure you have Python installed, then install the required libraries via your terminal:
@@ -47,25 +51,35 @@ pip install PyQt6 pyserial pyqt-darktheme
 - Duty Cycle Slider is now **locked** if board isn't connected.
 - Fixed slider telemetry data not zeroing out when board disconnected.
 - Added more debugging features , **ON** by default.
-- Updated README
+- Updated README.
 </details>
 <details>
 
 <summary>23/7/26 v0.1.3</summary>
 
-- MacOS compatability 
-- Other bug fixes
+- MacOS compatability .
+- Other bug fixes.
 </details>
 
 <details>
 
 <summary>27/7/26 v0.1.4</summary>
 
-- Changed file structure
-- Added Freq Change pop-up warning if output is enabled
-- Added Icons
-- changed file structure
-- General clean-up
+- Changed file structure.
+- Added Freq Change pop-up warning if output is enabled.
+- Added Icons.
+- changed file structure.
+- General clean-up.
+</details>
+
+<details>
+
+<summary>1/8/26 v0.1.5a</summary>
+
+- Added simple scripting capabilities for automated testing.(hopefuly)
+- Added simple script example.
+- cleaner debugging.
+- clean up.
 </details>
 
 
