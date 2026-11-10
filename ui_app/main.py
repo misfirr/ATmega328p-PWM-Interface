@@ -49,17 +49,54 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        
+        # --- Setup ---
+        self.init_state()
+        self.setup_window()
+        self.setup_backend()
+        self.setup_layout()
+        self.setup_menu()
+        self.setup_footer()
+
+        # --- Wiring ---
+        self.wire_scripting()
+        self.wire_footer()
+        self.wire_board_status()
+        self.wire_serial_monitor()
+        self.wire_duty_cycle()
+
+
+    # =====================================================================
+    #  SETUP
+    # =====================================================================
+
+    def init_state(self):
+        """Runtime state variables."""
         self.script_defaults = { }
         self.script_commands = { }
 
+        self.latest_telemetry = { } #used to store the latest telemetry data for the script runner to access
+
+        #Output state variable to keep track of the current output state (ON/OFF)
+        self.current_output_state = False
+
+    def setup_window(self):
+        """Window title, size and icon."""
         self.setWindowTitle(NAME)
         self.resize(1000, 700)
 
         icon_path = os.path.join(BASE_DIR, "icons", "blue.svg")
-        logo_path = os.path.join(BASE_DIR, "icons", "blue.svg")
-
         self.setWindowIcon(QIcon(icon_path))
+
+    def setup_backend(self):
+        """Non-UI objects: serial connection and script manager."""
+        self.board = SerialManager(debug=False) # Instantiate the manager
+
+        "Script Manager"
+        self.script_man = ScriptManager(DEBUG_MODE)
+
+    def setup_layout(self):
+        """Creates the panels and arranges them in the main window."""
+        logo_path = os.path.join(BASE_DIR, "icons", "blue.svg")
 
         # 1. Create the central widget and master layout
         central_widget = QWidget()#central widget is the main container for the window's content ,
@@ -70,18 +107,11 @@ class MainApp(QMainWindow):
         master_layout = QHBoxLayout() # Horizontal layout (Left to Right)
                                       #any widget added to it will be automatically placed side-by-side, reading left to right.
 
-        self.board = SerialManager(debug=False) # Instantiate the manager
-
-        self.latest_telemetry = { } #used to store the latest telemetry data for the script runner to access
-
-
         # Instantiate our custom panels
         self.left_panel = BoardStatusWidget(logo_path,LOGO_ON)
         self.top_right_panel = DutyCycleWidget()
         self.top_right_panel.setFixedHeight(200)  # Set a fixed height for the top right panel
         self.bottom_right_panel = SerialMonitorWidget()
-        #Output state variable to keep track of the current output state (ON/OFF)
-        self.current_output_state = False
 
         # Create a vertical layout for the right side
         right_side_layout = QVBoxLayout()
@@ -98,18 +128,109 @@ class MainApp(QMainWindow):
         central_widget.setLayout(self.mastermaster_layout)
         self.setCentralWidget(central_widget)
 
-        self.setup_menu()
+    def setup_menu(self):
+        # 1. Create the Menu Bar
+        menu_bar = self.menuBar()
+        
+        # 2. Add a "Scripting" Menu
+        script_menu = menu_bar.addMenu("Scripting")
+        
+        # 3. Create Actions (Buttons in the menu)
+        #create_action = QAction("Create New Script...", self)
+        load_action = QAction("Load Script...", self)
+        self.run_action = QAction("Run Script", self)
+        
+        # Disable the run button by default until a script is actually loaded
+        self.run_action.setEnabled(False)
+        
+        #create_action.triggered.connect(self.create_script)
+        load_action.triggered.connect(self.load_script)
+        self.run_action.triggered.connect(self.run_script)
+        
+        #script_menu.addAction(create_action)
+        script_menu.addAction(load_action)
+        script_menu.addSeparator() # Adds a nice visual line
+        script_menu.addAction(self.run_action)
 
-        #setup footer
-        self.setup_footer()
+    def setup_footer(self):
+        """Footer"""
+        footer_layout = QHBoxLayout()
+        footer_layout.setContentsMargins(10, 0, 10, 5) # Tight margins
+        
+        version_label = QLabel(INFO)
+        version_label.setStyleSheet("color: #666666; font-size: 10px;")
 
-        "Script Manager"
+        max_limit_label = QLabel(f"MAX_LIMIT : {MAX_LIMIT} %")
+        max_limit_label.setStyleSheet("color: #566666; font-size: 10px;")
+        
+        self.global_status_label = QLabel("🔴 Offline")
+        self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
 
-        self.script_man = ScriptManager(DEBUG_MODE)
+        prog_layout = self.setup_progress_bar()
+        
+        footer_layout.addWidget(version_label)
+        footer_layout.addStretch()
+        footer_layout.addLayout(prog_layout)
+        footer_layout.addStretch() 
+        footer_layout.addWidget(max_limit_label)
+        footer_layout.addWidget(self.global_status_label)
+        
+        # Add everything to the absolute main layout
+        self.mastermaster_layout.addLayout(footer_layout) 
+
+    def setup_progress_bar(self) -> QHBoxLayout:
+        """Creates the script progress bar and returns the layout holding it."""
+        #---SCRIPT PROGRESS BAR---#
+        prog_layout = QHBoxLayout()
+        prog_layout.setContentsMargins(0, 0, 0, 0)
+        prog_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align to the right
+
+        self.script_progress_bar = QProgressBar()
+        self.script_progress_bar.setRange(0, 100)
+        self.script_progress_bar.setValue(0)
+        self.script_progress_bar.setFormat("Script not loaded")
+        prog_layout.addWidget(self.script_progress_bar)
+        self.script_progress_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.script_progress_bar.setFixedWidth(300)  # Set a fixed width for the progress bar
+
+        #style the progress bar to have a dark theme
+        self.script_progress_bar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #555555;
+                border-radius: 5px;
+                text-align: center;
+                color: white;
+                background-color: #1e1e1e;
+                }
+
+                QProgressBar::chunk {
+                background-color: #0078D7;
+                border-radius: 4px;        
+                margin: 0px;               /* Ensures there is no invisible padding shrinking it */
+                width: 1px;              
+            }
+            """)
+
+        return prog_layout
+
+
+    # =====================================================================
+    #  WIRING
+    # =====================================================================
+
+    def wire_scripting(self):
+        """Wiring Script Manager / Scripting menu"""
         #wiring the script manager's log signal to the main app's message display function
         self.script_man.log_signal.connect(self.script_man_message)
-        
 
+        #wire connect event to enable_run_button function 
+        self.board.connection_changed.connect(self.enable_run_button)
+
+    def wire_footer(self):
+        """Wiring Footer Status"""
+        self.board.connection_changed.connect(self.update_global_status)
+
+    def wire_board_status(self):
         """Wiring Board Status"""
 
         # Wire the connect button click to our toggle function
@@ -142,6 +263,7 @@ class MainApp(QMainWindow):
         # Wire the output toggle button to the toggle_output function
         self.left_panel.btn_toggle_output.clicked.connect(self.toggle_output)   
 
+    def wire_serial_monitor(self):
         """Wiring Serial Monitor"""
 
         #wire send button to the send_raw_command function
@@ -156,6 +278,7 @@ class MainApp(QMainWindow):
         #wire the connection status to the serial monitor's UI updater for locking inputs
         self.board.connection_changed.connect(self.bottom_right_panel.update_connection_ui)
 
+    def wire_duty_cycle(self):
         """Wiring Duty Cycle Panel"""
         
         # Wire telemetry to the new Duty Cycle panel
@@ -168,100 +291,9 @@ class MainApp(QMainWindow):
         self.board.connection_changed.connect(self.top_right_panel.update_slider_state) 
 
 
-
-    def setup_menu(self):
-        # 1. Create the Menu Bar
-        menu_bar = self.menuBar()
-        
-        # 2. Add a "Scripting" Menu
-        script_menu = menu_bar.addMenu("Scripting")
-        
-        # 3. Create Actions (Buttons in the menu)
-        #create_action = QAction("Create New Script...", self)
-        load_action = QAction("Load Script...", self)
-        self.run_action = QAction("Run Script", self)
-        
-        # Disable the run button by default until a script is actually loaded
-        self.run_action.setEnabled(False)
-        
-        
-        #create_action.triggered.connect(self.create_script)
-        load_action.triggered.connect(self.load_script)
-        self.run_action.triggered.connect(self.run_script)
-        #wire connect event to enable_run_button function 
-        self.board.connection_changed.connect(self.enable_run_button)
-        
-        
-        #script_menu.addAction(create_action)
-        script_menu.addAction(load_action)
-        script_menu.addSeparator() # Adds a nice visual line
-        script_menu.addAction(self.run_action)
-        
-
-
-    def setup_footer(self):
-        """Footer"""
-        footer_layout = QHBoxLayout()
-        footer_layout.setContentsMargins(10, 0, 10, 5) # Tight margins
-        
-        version_label = QLabel(INFO)
-        version_label.setStyleSheet("color: #666666; font-size: 10px;")
-
-        max_limit_label = QLabel(f"MAX_LIMIT : {MAX_LIMIT} %")
-        max_limit_label.setStyleSheet("color: #566666; font-size: 10px;")
-        
-        self.global_status_label = QLabel("🔴 Offline")
-        self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
-
-        #---SCRIPT PROGRESS BAR---#
-        prog_layout = QHBoxLayout()
-        prog_layout.setContentsMargins(0, 0, 0, 0)
-        prog_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)  # Align to the right
-
-        self.script_progress_bar = QProgressBar()
-        self.script_progress_bar.setRange(0, 100)
-        self.script_progress_bar.setValue(0)
-        self.script_progress_bar.setFormat("Script not loaded")
-        prog_layout.addWidget(self.script_progress_bar)
-        self.script_progress_bar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.script_progress_bar.setFixedWidth(300)  # Set a fixed width for the progress bar
-        
-
-        #style the progress bar to have a dark theme
-        self.script_progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 1px solid #555555;
-                border-radius: 5px;
-                text-align: center;
-                color: white;
-                background-color: #1e1e1e;
-                }
-
-                QProgressBar::chunk {
-                background-color: #0078D7;
-                border-radius: 4px;        
-                margin: 0px;               /* Ensures there is no invisible padding shrinking it */
-                width: 1px;              
-            }
-            """)
-
-        
-        
-        footer_layout.addWidget(version_label)
-        footer_layout.addStretch()
-        footer_layout.addLayout(prog_layout)
-        footer_layout.addStretch() 
-        footer_layout.addWidget(max_limit_label)
-        footer_layout.addWidget(self.global_status_label)
-        
-        # Add everything to the absolute main layout
-        self.mastermaster_layout.addLayout(footer_layout) 
-
-        """Wiring Footer Status"""
-
-        self.board.connection_changed.connect(self.update_global_status)
-    
-        
+    # =====================================================================
+    #  BOARD CONTROL (slots)
+    # =====================================================================
 
     def toggle_connection(self):
         """Triggered when the user clicks the Connect button on the board status panel."""
@@ -330,17 +362,11 @@ class MainApp(QMainWindow):
         buttons =  QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel
 
         warning = QMessageBox(parent = self)
-
         warning.setWindowTitle("Warning!")
-
         warning.setText("<b>Changing the frequency will alter the current duty cycle</b>.\nIt is reccomended to first disable the output!")
-        
         warning.setInformativeText("Do you still want to proceed?")
-        
         warning.setIcon(QMessageBox.Icon.Warning)
-
         warning.setStandardButtons(buttons)
-
         warning.setDefaultButton(QMessageBox.StandardButton.Cancel)
 
         warning_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
@@ -349,7 +375,6 @@ class MainApp(QMainWindow):
         result = warning.exec()
 
         return result == QMessageBox.StandardButton.Ok
-
 
     def send_limit(self):
         raw_text = self.left_panel.limit_input.text().strip()
@@ -364,7 +389,6 @@ class MainApp(QMainWindow):
 
             if DEBUG_MODE:
                 self.bottom_right_panel.append_sent_message(f"L:{limit_val}")
-                
                 
             self.left_panel.limit_input.clear()
         except ValueError:self.left_panel.limit_input.clear()
@@ -408,12 +432,12 @@ class MainApp(QMainWindow):
                 print(f"[DEBUG] error:{ValueError}")
 
     def send_duty(self):
-            """Reads the slider and sends the target duty cycle."""
-            target_val = self.top_right_panel.slider.value()
-            self.board.send_command(f"D:{target_val}")
-            
-            if DEBUG_MODE:
-                self.bottom_right_panel.append_sent_message(f"D:{target_val}")
+        """Reads the slider and sends the target duty cycle."""
+        target_val = self.top_right_panel.slider.value()
+        self.board.send_command(f"D:{target_val}")
+        
+        if DEBUG_MODE:
+            self.bottom_right_panel.append_sent_message(f"D:{target_val}")
 
     def toggle_output(self):
         """Checks the memorized state and sends the opposite command explicitly."""
@@ -427,10 +451,28 @@ class MainApp(QMainWindow):
             
             self.board.send_command("O:1")
             if DEBUG_MODE:
-                
                 self.bottom_right_panel.append_sent_message("O:1")
                 print("[DEBUG] Sent Command: 0:1 (Turn ON)")
-    
+
+    def send_raw_command(self):
+        """Pulls text from the serial monitor input, sends it, and echoes it to the screen."""
+        raw_text = self.bottom_right_panel.input_box.text().strip()
+        
+        if raw_text:
+            # 1. Send it down the serial cable to the Arduino
+            self.board.send_command(raw_text)
+            
+            # 2. Tell the monitor widget to display it locally in blue with ">>>"
+            self.bottom_right_panel.append_sent_message(raw_text)
+            
+            # 3. Clear the input box
+            self.bottom_right_panel.input_box.clear()
+
+
+    # =====================================================================
+    #  TELEMETRY / STATUS
+    # =====================================================================
+
     def save_telemetry(self, payload):
         """saves telemetry data"""
         self.current_output_state = payload["output_enabled"]
@@ -440,30 +482,21 @@ class MainApp(QMainWindow):
         if hasattr(self, 'worker') and self.worker.isRunning():
             self.worker.update_telemetry(payload)
 
-    def send_raw_command(self):
-            """Pulls text from the serial monitor input, sends it, and echoes it to the screen."""
-            raw_text = self.bottom_right_panel.input_box.text().strip()
-            
-            if raw_text:
-                # 1. Send it down the serial cable to the Arduino
-                self.board.send_command(raw_text)
-                
-                # 2. Tell the monitor widget to display it locally in blue with ">>>"
-                self.bottom_right_panel.append_sent_message(raw_text)
-                
-                # 3. Clear the input box
-                self.bottom_right_panel.input_box.clear()
-            
     def update_global_status(self, is_connected):
-            """Catches the connection boolean and updates the footer text/color."""
-            if is_connected:
-                # Change text to Online and color to a bright terminal green
-                self.global_status_label.setText("🟢 Online")
-                self.global_status_label.setStyleSheet("color: #55ff55; font-size: 10px; font-weight: bold;")
-            else:
-                # Revert text to Offline and color to red
-                self.global_status_label.setText("🔴 Offline")
-                self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
+        """Catches the connection boolean and updates the footer text/color."""
+        if is_connected:
+            # Change text to Online and color to a bright terminal green
+            self.global_status_label.setText("🟢 Online")
+            self.global_status_label.setStyleSheet("color: #55ff55; font-size: 10px; font-weight: bold;")
+        else:
+            # Revert text to Offline and color to red
+            self.global_status_label.setText("🔴 Offline")
+            self.global_status_label.setStyleSheet("color: #ff5555; font-size: 10px; font-weight: bold;")
+
+
+    # =====================================================================
+    #  SCRIPTING
+    # =====================================================================
 
     def load_script(self) :  
 
@@ -481,7 +514,6 @@ class MainApp(QMainWindow):
                 if DEBUG_MODE : print(">>>[DEBUG]:At main: 'load_script:parse_file' returned None")
                 return
 
-           
             self.script_defaults = loaded_script.get("defaults")
             self.script_commands = loaded_script.get("commands")
             #self.run_action.setEnabled(True)  we also need to make sure that we have a valid connection to the board before enabling the run button
@@ -493,7 +525,6 @@ class MainApp(QMainWindow):
         else:
             if DEBUG_MODE : print(">>>[DEBUG]:At main: load_script:returned script path is a Null string ")
             self.script_man_message("Failed to Open File!")
-        
 
     def enable_run_button(self):
         """Enables the 'Run Script' button if a script is loaded and the board is connected."""
@@ -501,10 +532,9 @@ class MainApp(QMainWindow):
             self.run_action.setEnabled(True)
         else:
             self.run_action.setEnabled(False)
-        
 
     def run_script(self):
-         #Map the live telemetry to the format ScriptRunner expects
+        #Map the live telemetry to the format ScriptRunner expects
         currents = {
             "FREQ": self.latest_telemetry.get("frequency", 20000),
             "RAMP": self.latest_telemetry.get("ramp_period", 3000),
@@ -521,7 +551,7 @@ class MainApp(QMainWindow):
 
         self.script_progress_bar.setFormat("Running Script")
         
-    # ... connect signals and start ...
+        # ... connect signals and start ...
         self.worker.progress_signal.connect(self.script_progress_bar.setValue)
         self.worker.finished_signal.connect(lambda: self.script_progress_bar.setFormat("Script Finished!"))
         self.worker.log_signal.connect(self.script_runner_message)
@@ -531,12 +561,10 @@ class MainApp(QMainWindow):
         self.worker.start()
 
     def script_man_message(self,message):
-
         self.bottom_right_panel.append_sent_message(f"[SCRIPTMANAGER]:{message}")
 
     def script_runner_message(self,message):
-    
-            self.bottom_right_panel.append_sent_message(f"[SCRIPTRUNNER]:{message}")
+        self.bottom_right_panel.append_sent_message(f"[SCRIPTRUNNER]:{message}")
 
 
 
@@ -555,4 +583,3 @@ if __name__ == "__main__":
     window = MainApp()
     window.show()
     sys.exit(app.exec())
-            
