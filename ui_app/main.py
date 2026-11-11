@@ -73,6 +73,7 @@ class MainApp(QMainWindow):
         """Runtime state variables."""
         self.script_defaults = { }
         self.script_commands = { }
+        self.script_running = False # True while a ScriptRunner thread is executing
 
         self.latest_telemetry = { } #used to store the latest telemetry data for the script runner to access
 
@@ -395,10 +396,11 @@ class MainApp(QMainWindow):
 
     def send_ramp(self):
 
+        raw_text = self.left_panel.ramp_input.text().strip()
         if DEBUG_MODE:
             print("[DEBUG] Ramp button clicked.")
-        raw_text = self.left_panel.ramp_input.text().strip()
-        print(f"[DEBUG] Raw ramp input: '{raw_text}'")
+            print(f"[DEBUG] Raw ramp input: '{raw_text}'")
+            
         if not raw_text: return
 
         #seconds input
@@ -410,7 +412,7 @@ class MainApp(QMainWindow):
 
                 if DEBUG_MODE:
                     print(f"[DEBUG] Parsed ramp value from secs func: {ramp_val}")
-                    self.board.send_command(f"P:{ramp_val}") 
+                self.board.send_command(f"P:{ramp_val}") 
 
                 self.left_panel.ramp_input.clear()
             except ValueError:
@@ -423,7 +425,7 @@ class MainApp(QMainWindow):
 
                 if DEBUG_MODE:
                     print(f"[DEBUG] Parsed ramp value: {ramp_val}")
-                    self.bottom_right_panel.append_sent_message(f"R:{ramp_val}")
+                    self.bottom_right_panel.append_sent_message(f"P:{ramp_val}")
 
                 self.board.send_command(f"P:{ramp_val}") 
                 self.left_panel.ramp_input.clear()
@@ -527,13 +529,18 @@ class MainApp(QMainWindow):
             self.script_man_message("Failed to Open File!")
 
     def enable_run_button(self):
-        """Enables the 'Run Script' button if a script is loaded and the board is connected."""
-        if self.script_commands and self.board.is_connected:
+        """Enables the 'Run Script' button if a script is loaded, the board is connected and no script is already running."""
+        if self.script_commands and self.board.is_connected and not self.script_running:
             self.run_action.setEnabled(True)
         else:
             self.run_action.setEnabled(False)
 
     def run_script(self):
+        # Guard: never start a second runner while one is still active
+        # (replacing self.worker would destroy a running QThread -> crash)
+        if self.script_running:
+            return
+
         #Map the live telemetry to the format ScriptRunner expects
         currents = {
             "FREQ": self.latest_telemetry.get("frequency", 20000),
@@ -556,9 +563,20 @@ class MainApp(QMainWindow):
         self.worker.finished_signal.connect(lambda: self.script_progress_bar.setFormat("Script Finished!"))
         self.worker.log_signal.connect(self.script_runner_message)
         self.worker.next_command.connect(self.board.send_command)
-        self.board.telemetry_updated.connect(self.worker.update_telemetry)
+        # Telemetry is forwarded to the worker by save_telemetry, no direct connection needed
+
+        # QThread's built-in 'finished' fires when run() exits -> allow running again
+        self.worker.finished.connect(self.on_script_finished)
+
+        self.script_running = True
+        self.enable_run_button() # disables the run button while the script runs
 
         self.worker.start()
+
+    def on_script_finished(self):
+        """Called when the ScriptRunner thread exits. Re-enables the run button."""
+        self.script_running = False
+        self.enable_run_button()
 
     def script_man_message(self,message):
         self.bottom_right_panel.append_sent_message(f"[SCRIPTMANAGER]:{message}")
